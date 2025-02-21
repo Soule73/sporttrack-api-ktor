@@ -88,6 +88,7 @@ fun Application.configureValidation() {
             if (errors.isEmpty()) {
                 ValidationResult.Valid
             } else {
+                println(errors.joinToString("\n"))
                 ValidationResult.Invalid(errors)
             }
         }

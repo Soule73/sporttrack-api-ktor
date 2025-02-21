@@ -9,12 +9,7 @@ import java.time.LocalDateTime
 
 fun configureMigrations() {
 
-    val database = Database.connect(
-        url = "jdbc:mysql://localhost:3306/sport_track_db",
-        driver = "com.mysql.cj.jdbc.Driver",
-        user = "root",
-        password = ""
-    )
+    val database = DatabaseSingleton.database
 
     fun initDatabase(database: Database) {
         transaction(database) {

@@ -5,10 +5,13 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
+import stapi.models.ErrorResponse
 
 fun Application.configureStatusPages() {
     install(StatusPages) {
         exception<RequestValidationException> { call, cause ->
+            call.application.environment.log.error("exception /:", cause)
+
             val errorsList = cause.reasons // Liste des messages d'erreur
             val errorsMap = errorsList.mapNotNull { error ->
                 val parts = error.split(":", limit = 2)
@@ -19,21 +22,26 @@ fun Application.configureStatusPages() {
                 } else {
                     null
                 }
-            }.toMap()
-            call.respond(HttpStatusCode.BadRequest, mapOf("errors" to errorsMap))
+            }.toMap().ifEmpty { mapOf("error" to "Validation échouée") }
+            val code=if(cause.value=="conflict") HttpStatusCode.Conflict else HttpStatusCode.BadRequest
+            call.respond(code, ErrorResponse(errors = errorsMap))
         }
 
         exception<AuthenticationException> { call, cause ->
-            call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Authentification échouée"))
+            call.application.environment.log.error("exception /:", cause)
+
+            call.respond(HttpStatusCode.Unauthorized, ErrorResponse(errors = mapOf("error" to "Authentification échouée")))
         }
 
         exception<AuthorizationException> { call, cause ->
-            call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Accès refusé"))
+            call.application.environment.log.error("exception /:", cause)
+
+            call.respond(HttpStatusCode.Forbidden, ErrorResponse(errors = mapOf("error" to "Accès refusé")))
         }
 
         exception<Throwable> { call, cause ->
             call.application.environment.log.error("Une exception non gérée s'est produite", cause)
-            call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Erreur interne du serveur"))
+            call.respond(HttpStatusCode.InternalServerError, ErrorResponse(errors = mapOf("error" to "Erreur interne du serveur")))
         }
     }
 }

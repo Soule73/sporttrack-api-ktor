@@ -1,3 +1,16 @@
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.util.Properties
+
+val secretsPropertiesFile = rootProject.file("keystore.properties")
+val secretsProperties = Properties()
+if (secretsPropertiesFile.exists()) {
+    secretsProperties.load(FileInputStream(secretsPropertiesFile))
+} else {
+    throw FileNotFoundException("Le fichier secrets.properties est manquant.")
+}
+
+
 val exposed_version: String by project
 val h2_version: String by project
 val kotlin_version: String by project
@@ -19,6 +32,8 @@ application {
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+
+
 }
 
 repositories {
@@ -55,6 +70,8 @@ dependencies {
     implementation("org.mindrot:jbcrypt:0.4")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+
+    implementation("io.github.cdimascio:java-dotenv:5.2.2")
 
     testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")

@@ -6,6 +6,7 @@ import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.config.*
+import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -32,8 +33,11 @@ fun Route.authRoutes(userService: UserService) {
             // Vérifie si l'utilisateur existe déjà
             val existingUser = userService.findByEmail(userRequest.email)
             if (existingUser != null) {
-                call.respond(HttpStatusCode.Conflict, "Email already in use.")
-                return@post
+
+                    throw RequestValidationException("conflict",listOf("email: L'adresse e-mail est déjà utilisée."))
+//
+//                call.respond(HttpStatusCode.Conflict, "Email already in use.")
+//                return@post
             }
 
             // Crée l'utilisateur
